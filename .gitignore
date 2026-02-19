@@ -69,6 +69,7 @@ appsettings.Development.json
 appsettings.Production.json
 appsettings.Local.json
 secrets.json
+appsettings.json
 
 # OS
 .DS_Store
