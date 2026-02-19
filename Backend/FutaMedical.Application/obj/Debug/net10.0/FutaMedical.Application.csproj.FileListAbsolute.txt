@@ -1,0 +1,17 @@
+C:\Users\FRANCIS GBOHUNMI\Desktop\PROJECTS\carepulse-futa\Backend\FutaMedical.Application\bin\Debug\net10.0\FutaMedical.Application.deps.json
+C:\Users\FRANCIS GBOHUNMI\Desktop\PROJECTS\carepulse-futa\Backend\FutaMedical.Application\bin\Debug\net10.0\FutaMedical.Application.runtimeconfig.json
+C:\Users\FRANCIS GBOHUNMI\Desktop\PROJECTS\carepulse-futa\Backend\FutaMedical.Application\bin\Debug\net10.0\FutaMedical.Application.dll
+C:\Users\FRANCIS GBOHUNMI\Desktop\PROJECTS\carepulse-futa\Backend\FutaMedical.Application\bin\Debug\net10.0\FutaMedical.Application.pdb
+C:\Users\FRANCIS GBOHUNMI\Desktop\PROJECTS\carepulse-futa\Backend\FutaMedical.Application\bin\Debug\net10.0\FutaMedical.Domain.dll
+C:\Users\FRANCIS GBOHUNMI\Desktop\PROJECTS\carepulse-futa\Backend\FutaMedical.Application\bin\Debug\net10.0\FutaMedical.Domain.pdb
+C:\Users\FRANCIS GBOHUNMI\Desktop\PROJECTS\carepulse-futa\Backend\FutaMedical.Application\obj\Debug\net10.0\FutaMedical.Application.csproj.AssemblyReference.cache
+C:\Users\FRANCIS GBOHUNMI\Desktop\PROJECTS\carepulse-futa\Backend\FutaMedical.Application\obj\Debug\net10.0\FutaMedical.Application.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\FRANCIS GBOHUNMI\Desktop\PROJECTS\carepulse-futa\Backend\FutaMedical.Application\obj\Debug\net10.0\FutaMedical.Application.AssemblyInfoInputs.cache
+C:\Users\FRANCIS GBOHUNMI\Desktop\PROJECTS\carepulse-futa\Backend\FutaMedical.Application\obj\Debug\net10.0\FutaMedical.Application.AssemblyInfo.cs
+C:\Users\FRANCIS GBOHUNMI\Desktop\PROJECTS\carepulse-futa\Backend\FutaMedical.Application\obj\Debug\net10.0\FutaMedical.Application.csproj.CoreCompileInputs.cache
+C:\Users\FRANCIS GBOHUNMI\Desktop\PROJECTS\carepulse-futa\Backend\FutaMedical.Application\obj\Debug\net10.0\FutaMedi.634E28ED.Up2Date
+C:\Users\FRANCIS GBOHUNMI\Desktop\PROJECTS\carepulse-futa\Backend\FutaMedical.Application\obj\Debug\net10.0\FutaMedical.Application.dll
+C:\Users\FRANCIS GBOHUNMI\Desktop\PROJECTS\carepulse-futa\Backend\FutaMedical.Application\obj\Debug\net10.0\refint\FutaMedical.Application.dll
+C:\Users\FRANCIS GBOHUNMI\Desktop\PROJECTS\carepulse-futa\Backend\FutaMedical.Application\obj\Debug\net10.0\FutaMedical.Application.pdb
+C:\Users\FRANCIS GBOHUNMI\Desktop\PROJECTS\carepulse-futa\Backend\FutaMedical.Application\obj\Debug\net10.0\FutaMedical.Application.genruntimeconfig.cache
+C:\Users\FRANCIS GBOHUNMI\Desktop\PROJECTS\carepulse-futa\Backend\FutaMedical.Application\obj\Debug\net10.0\ref\FutaMedical.Application.dll

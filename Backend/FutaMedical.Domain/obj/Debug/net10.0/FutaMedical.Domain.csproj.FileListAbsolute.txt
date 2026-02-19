@@ -1,0 +1,11 @@
+C:\Users\FRANCIS GBOHUNMI\Desktop\PROJECTS\carepulse-futa\Backend\FutaMedical.Domain\bin\Debug\net10.0\FutaMedical.Domain.deps.json
+C:\Users\FRANCIS GBOHUNMI\Desktop\PROJECTS\carepulse-futa\Backend\FutaMedical.Domain\bin\Debug\net10.0\FutaMedical.Domain.dll
+C:\Users\FRANCIS GBOHUNMI\Desktop\PROJECTS\carepulse-futa\Backend\FutaMedical.Domain\bin\Debug\net10.0\FutaMedical.Domain.pdb
+C:\Users\FRANCIS GBOHUNMI\Desktop\PROJECTS\carepulse-futa\Backend\FutaMedical.Domain\obj\Debug\net10.0\FutaMedical.Domain.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\FRANCIS GBOHUNMI\Desktop\PROJECTS\carepulse-futa\Backend\FutaMedical.Domain\obj\Debug\net10.0\FutaMedical.Domain.AssemblyInfoInputs.cache
+C:\Users\FRANCIS GBOHUNMI\Desktop\PROJECTS\carepulse-futa\Backend\FutaMedical.Domain\obj\Debug\net10.0\FutaMedical.Domain.AssemblyInfo.cs
+C:\Users\FRANCIS GBOHUNMI\Desktop\PROJECTS\carepulse-futa\Backend\FutaMedical.Domain\obj\Debug\net10.0\FutaMedical.Domain.csproj.CoreCompileInputs.cache
+C:\Users\FRANCIS GBOHUNMI\Desktop\PROJECTS\carepulse-futa\Backend\FutaMedical.Domain\obj\Debug\net10.0\FutaMedical.Domain.dll
+C:\Users\FRANCIS GBOHUNMI\Desktop\PROJECTS\carepulse-futa\Backend\FutaMedical.Domain\obj\Debug\net10.0\refint\FutaMedical.Domain.dll
+C:\Users\FRANCIS GBOHUNMI\Desktop\PROJECTS\carepulse-futa\Backend\FutaMedical.Domain\obj\Debug\net10.0\FutaMedical.Domain.pdb
+C:\Users\FRANCIS GBOHUNMI\Desktop\PROJECTS\carepulse-futa\Backend\FutaMedical.Domain\obj\Debug\net10.0\ref\FutaMedical.Domain.dll
