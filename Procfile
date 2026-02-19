@@ -1,0 +1,1 @@
+web: cd src/FutaMedical.API && dotnet FutaMedical.API.dll --server.urls http://+:$PORT
