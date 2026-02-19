@@ -24,7 +24,7 @@ public static class DependencyInjection
                         errorCodesToAdd: null);
                     builder.CommandTimeout(120); // 2 minutes
                 })
-                .EnableSensitiveDataLogging(configuration.GetValue<bool>("EnableSensitiveDataLogging", false)));
+                .EnableSensitiveDataLogging(bool.TryParse(configuration["EnableSensitiveDataLogging"], out var result) && result));
 
         services.AddScoped<IApplicationDbContext>(provider => provider.GetRequiredService<ApplicationDbContext>());
 
