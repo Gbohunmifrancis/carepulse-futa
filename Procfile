@@ -1,1 +1,1 @@
-web: cd src/FutaMedical.API && dotnet FutaMedical.API.dll --server.urls http://+:$PORT
+web: cd $HOME/heroku_output && ./FutaMedical.API --urls http://+:$PORT
