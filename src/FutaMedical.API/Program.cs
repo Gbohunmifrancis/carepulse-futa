@@ -72,7 +72,10 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowFrontend", policy =>
     {
-        policy.WithOrigins("http://localhost:3000")
+        policy.WithOrigins(
+                "http://localhost:3000",
+                "https://futa-medical-7ac7576e354e.herokuapp.com"
+              )
               .AllowAnyMethod()
               .AllowAnyHeader()
               .AllowCredentials();

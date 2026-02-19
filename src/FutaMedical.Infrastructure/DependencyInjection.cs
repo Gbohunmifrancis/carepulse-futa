@@ -15,7 +15,16 @@ public static class DependencyInjection
 
         services.AddDbContext<ApplicationDbContext>(options =>
             options.UseNpgsql(connectionString,
-                builder => builder.MigrationsAssembly(typeof(ApplicationDbContext).Assembly.FullName)));
+                builder => 
+                {
+                    builder.MigrationsAssembly(typeof(ApplicationDbContext).Assembly.FullName);
+                    builder.EnableRetryOnFailure(
+                        maxRetryCount: 5,
+                        maxRetryDelay: TimeSpan.FromSeconds(30),
+                        errorCodesToAdd: null);
+                    builder.CommandTimeout(120); // 2 minutes
+                })
+                .EnableSensitiveDataLogging(configuration.GetValue<bool>("EnableSensitiveDataLogging", false)));
 
         services.AddScoped<IApplicationDbContext>(provider => provider.GetRequiredService<ApplicationDbContext>());
 
