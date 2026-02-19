@@ -1,6 +1,7 @@
 using System.Security.Claims;
 using FutaMedical.API.Common;
 using FutaMedical.Application.Features.Students.Queries;
+using FutaMedical.Application.Features.Students.Commands;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -58,5 +59,42 @@ public class StudentsController : ControllerBase
                 "Failed to retrieve profile",
                 new List<string> { ex.Message }));
         }
+    }
+
+    /// <summary>
+    /// Update the authenticated student's profile (mutable fields only).
+    /// </summary>
+    /// <remarks>
+    /// **Immutable fields** (cannot be changed):  
+    /// - FirstName, LastName  
+    /// - MatricNumber  
+    /// - DateOfBirth  
+    /// - Gender  
+    /// 
+    /// **Mutable fields** (can be updated):  
+    /// - PhoneNumber, Address  
+    /// - Faculty, Department, YearOfStudy  
+    /// - BloodGroup, Genotype, Allergies  
+    /// - EmergencyContactName, EmergencyContactPhone  
+    /// 
+    /// Only provide the fields you want to update. Null/missing fields will not be changed.
+    /// </remarks>
+    /// <response code="200">Profile updated successfully.</response>
+    /// <response code="400">Validation failed or invalid data provided.</response>
+    /// <response code="401">Unauthenticated - JWT token missing or expired.</response>
+    /// <response code="403">Forbidden - user does not have the Student role.</response>
+    [HttpPatch("profile")]
+    [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    public async Task<ActionResult<ApiResponse<object>>> UpdateProfile([FromBody] UpdateStudentProfileCommand command)
+    {
+        var result = await _mediator.Send(command);
+        
+        if (!result.Success)
+            return BadRequest(ApiResponse<object>.ErrorResponse(result.Message));
+        
+        return Ok(ApiResponse<object>.SuccessResponse(null, result.Message));
     }
 }
