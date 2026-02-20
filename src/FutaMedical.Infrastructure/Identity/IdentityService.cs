@@ -79,70 +79,75 @@ public class IdentityService : IIdentityService
             return (false, "Student role not found in system", null);
         }
 
-        using var transaction = await ((DbContext)_context).Database.BeginTransactionAsync();
-        try
+        // Use execution strategy to wrap the transaction for retry support
+        var strategy = ((DbContext)_context).Database.CreateExecutionStrategy();
+        return await strategy.ExecuteAsync(async () =>
         {
-            var user = new User
+            using var transaction = await ((DbContext)_context).Database.BeginTransactionAsync();
+            try
             {
-                Email = request.Email,
-                PasswordHash = BCryptLib.HashPassword(request.Password),
-                FirstName = request.FirstName,
-                LastName = request.LastName,
-                PhoneNumber = request.PhoneNumber,
-            };
-
-            user.UserRoles.Add(new UserRole { RoleId = studentRole.Id });
-            _context.Users.Add(user);
-            await _context.SaveChangesAsync(default);
-
-            var student = new Student
-            {
-                UserId = user.Id,
-                MatricNumber = request.MatricNumber,
-                DateOfBirth = request.DateOfBirth,
-                Gender = request.Gender,
-                Address = request.Address,
-                Faculty = request.Faculty,
-                Department = request.Department,
-                YearOfStudy = request.YearOfStudy,
-                BloodGroup = request.BloodGroup,
-                Genotype = request.Genotype,
-                Allergies = request.Allergies,
-                EmergencyContactName = request.EmergencyContactName,
-                EmergencyContactPhone = request.EmergencyContactPhone
-            };
-
-            _context.Students.Add(student);
-            await _context.SaveChangesAsync(default);
-            await transaction.CommitAsync();
-
-            var roles = new List<string> { "Student" };
-            var token = _jwtService.GenerateToken(user.Id, user.Email, user.FirstName, user.LastName, roles);
-            var refreshToken = _jwtService.GenerateRefreshToken();
-
-            user.RefreshToken = refreshToken;
-            user.RefreshTokenExpiryTime = DateTime.UtcNow.AddDays(7);
-            await _context.SaveChangesAsync(default);
-
-            return (true, "Registration successful", new AuthResponse
-            {
-                Token = token,
-                RefreshToken = refreshToken,
-                User = new UserDto
+                var user = new User
                 {
-                    Id = user.Id,
-                    Email = user.Email,
-                    FirstName = user.FirstName,
-                    LastName = user.LastName,
-                    Roles = roles
-                }
-            });
-        }
-        catch (Exception ex)
-        {
-            await transaction.RollbackAsync();
-            return (false, $"An error occurred during registration: {ex.Message}", null);
-        }
+                    Email = request.Email,
+                    PasswordHash = BCryptLib.HashPassword(request.Password),
+                    FirstName = request.FirstName,
+                    LastName = request.LastName,
+                    PhoneNumber = request.PhoneNumber,
+                };
+
+                user.UserRoles.Add(new UserRole { RoleId = studentRole.Id });
+                _context.Users.Add(user);
+                await _context.SaveChangesAsync(default);
+
+                var student = new Student
+                {
+                    UserId = user.Id,
+                    MatricNumber = request.MatricNumber,
+                    DateOfBirth = request.DateOfBirth,
+                    Gender = request.Gender,
+                    Address = request.Address,
+                    Faculty = request.Faculty,
+                    Department = request.Department,
+                    YearOfStudy = request.YearOfStudy,
+                    BloodGroup = request.BloodGroup,
+                    Genotype = request.Genotype,
+                    Allergies = request.Allergies,
+                    EmergencyContactName = request.EmergencyContactName,
+                    EmergencyContactPhone = request.EmergencyContactPhone
+                };
+
+                _context.Students.Add(student);
+                await _context.SaveChangesAsync(default);
+                await transaction.CommitAsync();
+
+                var roles = new List<string> { "Student" };
+                var token = _jwtService.GenerateToken(user.Id, user.Email, user.FirstName, user.LastName, roles);
+                var refreshToken = _jwtService.GenerateRefreshToken();
+
+                user.RefreshToken = refreshToken;
+                user.RefreshTokenExpiryTime = DateTime.UtcNow.AddDays(7);
+                await _context.SaveChangesAsync(default);
+
+                return (true, "Registration successful", new AuthResponse
+                {
+                    Token = token,
+                    RefreshToken = refreshToken,
+                    User = new UserDto
+                    {
+                        Id = user.Id,
+                        Email = user.Email,
+                        FirstName = user.FirstName,
+                        LastName = user.LastName,
+                        Roles = roles
+                    }
+                });
+            }
+            catch (Exception ex)
+            {
+                await transaction.RollbackAsync();
+                return (false, $"An error occurred during registration: {ex.Message}", null);
+            }
+        });
     }
 
     public async Task<(bool Success, string Message, AuthResponse? Response)> RefreshTokenAsync(string token, string refreshToken)
