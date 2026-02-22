@@ -60,7 +60,7 @@ public class UpdateStudentProfileCommandHandler : IRequestHandler<UpdateStudentP
 
     public async Task<(bool Success, string Message)> Handle(UpdateStudentProfileCommand request, CancellationToken cancellationToken)
     {
-        var userIdClaim = _httpContextAccessor.HttpContext?.User.FindFirst("sub")?.Value;
+        var userIdClaim = _httpContextAccessor.HttpContext?.User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
         if (string.IsNullOrEmpty(userIdClaim) || !Guid.TryParse(userIdClaim, out var userId))
             return (false, "Unauthorized");
 
