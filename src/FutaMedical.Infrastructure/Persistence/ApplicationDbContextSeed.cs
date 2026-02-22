@@ -41,132 +41,222 @@ public class ApplicationDbContextSeed
 
         // Seed Default Admin
         var adminRole = await context.Roles.FirstOrDefaultAsync(r => r.Name == "Admin");
-        if (adminRole != null && !await context.Users.AnyAsync(u => u.Email == "francisgbohunmi@gmail.com"))
+        if (adminRole != null)
         {
-            var adminUser = new User
+            var adminUserExists = await context.Users.FirstOrDefaultAsync(u => u.Email == "francisgbohunmi@gmail.com");
+            
+            if (adminUserExists == null)
             {
-                Id = Guid.NewGuid(),
-                Email = "francisgbohunmi@gmail.com",
-                PasswordHash = BCryptLib.HashPassword("Admin123!"),
-                FirstName = "System",
-                LastName = "Administrator",
-                PhoneNumber = "+2348000000000",
-                IsActive = true,
-                CreatedAt = DateTime.UtcNow
-            };
-            context.Users.Add(adminUser);
-            await context.SaveChangesAsync(default);
+                var adminUser = new User
+                {
+                    Id = Guid.NewGuid(),
+                    Email = "francisgbohunmi@gmail.com",
+                    PasswordHash = BCryptLib.HashPassword("Admin123!"),
+                    FirstName = "System",
+                    LastName = "Administrator",
+                    PhoneNumber = "+2348000000000",
+                    IsActive = true,
+                    CreatedAt = DateTime.UtcNow
+                };
+                context.Users.Add(adminUser);
+                await context.SaveChangesAsync(default);
 
-            context.UserRoles.Add(new UserRole
+                context.UserRoles.Add(new UserRole
+                {
+                    Id = Guid.NewGuid(),
+                    UserId = adminUser.Id,
+                    RoleId = adminRole.Id,
+                    AssignedAt = DateTime.UtcNow
+                });
+
+                context.Admins.Add(new Admin
+                {
+                    Id = Guid.NewGuid(),
+                    UserId = adminUser.Id,
+                    CreatedAt = DateTime.UtcNow
+                });
+
+                await context.SaveChangesAsync(default);
+            }
+            else
             {
-                Id = Guid.NewGuid(),
-                UserId = adminUser.Id,
-                RoleId = adminRole.Id,
-                AssignedAt = DateTime.UtcNow
-            });
-
-            context.Admins.Add(new Admin
-            {
-                Id = Guid.NewGuid(),
-                UserId = adminUser.Id,
-                CreatedAt = DateTime.UtcNow
-            });
-
-            await context.SaveChangesAsync(default);
+                // Ensure UserRole exists
+                var hasRole = await context.UserRoles.AnyAsync(ur => ur.UserId == adminUserExists.Id && ur.RoleId == adminRole.Id);
+                if (!hasRole)
+                {
+                    context.UserRoles.Add(new UserRole
+                    {
+                        Id = Guid.NewGuid(),
+                        UserId = adminUserExists.Id,
+                        RoleId = adminRole.Id,
+                        AssignedAt = DateTime.UtcNow
+                    });
+                    await context.SaveChangesAsync(default);
+                }
+            }
         }
 
         // Seed Sample Doctor (Optional for testing)
         var doctorRole = await context.Roles.FirstOrDefaultAsync(r => r.Name == "Doctor");
         var generalMedicineDept = await context.Departments.FirstOrDefaultAsync(d => d.Name == "General Medicine");
         
-        if (doctorRole != null && generalMedicineDept != null && !await context.Users.AnyAsync(u => u.Email == "doctor@futa.edu.ng"))
+        if (doctorRole != null && generalMedicineDept != null)
         {
-            var doctorUser = new User
+            var doctorUserExists = await context.Users.FirstOrDefaultAsync(u => u.Email == "doctor@futa.edu.ng");
+            
+            if (doctorUserExists == null)
             {
-                Id = Guid.NewGuid(),
-                Email = "doctor@futa.edu.ng",
-                PasswordHash = BCryptLib.HashPassword("Doctor123!"),
-                FirstName = "James",
-                LastName = "Smith",
-                PhoneNumber = "+2348111111111",
-                IsActive = true,
-                CreatedAt = DateTime.UtcNow
-            };
-            context.Users.Add(doctorUser);
-            await context.SaveChangesAsync(default);
+                var doctorUser = new User
+                {
+                    Id = Guid.NewGuid(),
+                    Email = "doctor@futa.edu.ng",
+                    PasswordHash = BCryptLib.HashPassword("Doctor123!"),
+                    FirstName = "James",
+                    LastName = "Smith",
+                    PhoneNumber = "+2348111111111",
+                    IsActive = true,
+                    CreatedAt = DateTime.UtcNow
+                };
+                context.Users.Add(doctorUser);
+                await context.SaveChangesAsync(default);
 
-            context.UserRoles.Add(new UserRole
+                context.UserRoles.Add(new UserRole
+                {
+                    Id = Guid.NewGuid(),
+                    UserId = doctorUser.Id,
+                    RoleId = doctorRole.Id,
+                    AssignedAt = DateTime.UtcNow
+                });
+
+                context.Doctors.Add(new Doctor
+                {
+                    Id = Guid.NewGuid(),
+                    UserId = doctorUser.Id,
+                    DepartmentId = generalMedicineDept.Id,
+                    Specialization = "General Practitioner",
+                    LicenseNumber = "MD123456",
+                    Qualifications = "MBBS, FMCP",
+                    YearsOfExperience = 10,
+                    IsVerified = true,
+                    CreatedAt = DateTime.UtcNow
+                });
+
+                await context.SaveChangesAsync(default);
+            }
+            else
             {
-                Id = Guid.NewGuid(),
-                UserId = doctorUser.Id,
-                RoleId = doctorRole.Id,
-                AssignedAt = DateTime.UtcNow
-            });
-
-            context.Doctors.Add(new Doctor
-            {
-                Id = Guid.NewGuid(),
-                UserId = doctorUser.Id,
-                DepartmentId = generalMedicineDept.Id,
-                Specialization = "General Practitioner",
-                LicenseNumber = "MD123456",
-                Qualifications = "MBBS, FMCP",
-                YearsOfExperience = 10,
-                IsVerified = true,
-                CreatedAt = DateTime.UtcNow
-            });
-
-            await context.SaveChangesAsync(default);
+                // Ensure UserRole exists
+                var hasRole = await context.UserRoles.AnyAsync(ur => ur.UserId == doctorUserExists.Id && ur.RoleId == doctorRole.Id);
+                if (!hasRole)
+                {
+                    context.UserRoles.Add(new UserRole
+                    {
+                        Id = Guid.NewGuid(),
+                        UserId = doctorUserExists.Id,
+                        RoleId = doctorRole.Id,
+                        AssignedAt = DateTime.UtcNow
+                    });
+                    await context.SaveChangesAsync(default);
+                }
+            }
         }
 
         // Seed Sample Student (Optional for testing)
         var studentRole = await context.Roles.FirstOrDefaultAsync(r => r.Name == "Student");
         
-        if (studentRole != null && !await context.Users.AnyAsync(u => u.Email == "student@futa.edu.ng"))
+        if (studentRole != null)
         {
-            var studentUser = new User
+            var studentUserExists = await context.Users.FirstOrDefaultAsync(u => u.Email == "student@futa.edu.ng");
+            
+            if (studentUserExists == null)
             {
-                Id = Guid.NewGuid(),
-                Email = "student@futa.edu.ng",
-                PasswordHash = BCryptLib.HashPassword("Student123!"),
-                FirstName = "John",
-                LastName = "Doe",
-                PhoneNumber = "+2348222222222",
-                IsActive = true,
-                CreatedAt = DateTime.UtcNow
-            };
-            context.Users.Add(studentUser);
-            await context.SaveChangesAsync(default);
+                // Create new student user
+                var studentUser = new User
+                {
+                    Id = Guid.NewGuid(),
+                    Email = "student@futa.edu.ng",
+                    PasswordHash = BCryptLib.HashPassword("Student123!"),
+                    FirstName = "John",
+                    LastName = "Doe",
+                    PhoneNumber = "+2348222222222",
+                    IsActive = true,
+                    CreatedAt = DateTime.UtcNow
+                };
+                context.Users.Add(studentUser);
+                await context.SaveChangesAsync(default);
 
-            context.UserRoles.Add(new UserRole
+                context.UserRoles.Add(new UserRole
+                {
+                    Id = Guid.NewGuid(),
+                    UserId = studentUser.Id,
+                    RoleId = studentRole.Id,
+                    AssignedAt = DateTime.UtcNow
+                });
+
+                context.Students.Add(new Student
+                {
+                    Id = Guid.NewGuid(),
+                    UserId = studentUser.Id,
+                    MatricNumber = "CSC/2020/001",
+                    DateOfBirth = new DateTime(2000, 5, 15, 0, 0, 0, DateTimeKind.Utc),
+                    Gender = "Male",
+                    Address = "123 Student Ave, Akure",
+                    Faculty = "Engineering",
+                    Department = "Computer Science",
+                    YearOfStudy = 3,
+                    BloodGroup = "O+",
+                    Genotype = "AA",
+                    Allergies = "Penicillin",
+                    EmergencyContactName = "Jane Doe",
+                    EmergencyContactPhone = "+2348333333333",
+                    IsVerified = true,
+                    CreatedAt = DateTime.UtcNow
+                });
+
+                await context.SaveChangesAsync(default);
+            }
+            else
             {
-                Id = Guid.NewGuid(),
-                UserId = studentUser.Id,
-                RoleId = studentRole.Id,
-                AssignedAt = DateTime.UtcNow
-            });
-
-            context.Students.Add(new Student
-            {
-                Id = Guid.NewGuid(),
-                UserId = studentUser.Id,
-                MatricNumber = "CSC/2020/001",
-                DateOfBirth = new DateTime(2000, 5, 15, 0, 0, 0, DateTimeKind.Utc),
-                Gender = "Male",
-                Address = "123 Student Ave, Akure",
-                Faculty = "Engineering",
-                Department = "Computer Science",
-                YearOfStudy = 3,
-                BloodGroup = "O+",
-                Genotype = "AA",
-                Allergies = "Penicillin",
-                EmergencyContactName = "Jane Doe",
-                EmergencyContactPhone = "+2348333333333",
-                IsVerified = true,
-                CreatedAt = DateTime.UtcNow
-            });
-
-            await context.SaveChangesAsync(default);
+                // Ensure UserRole exists for existing student user
+                var hasRole = await context.UserRoles.AnyAsync(ur => ur.UserId == studentUserExists.Id && ur.RoleId == studentRole.Id);
+                if (!hasRole)
+                {
+                    context.UserRoles.Add(new UserRole
+                    {
+                        Id = Guid.NewGuid(),
+                        UserId = studentUserExists.Id,
+                        RoleId = studentRole.Id,
+                        AssignedAt = DateTime.UtcNow
+                    });
+                    await context.SaveChangesAsync(default);
+                }
+                
+                // Ensure Student profile exists
+                var hasStudentProfile = await context.Students.AnyAsync(s => s.UserId == studentUserExists.Id);
+                if (!hasStudentProfile)
+                {
+                    context.Students.Add(new Student
+                    {
+                        Id = Guid.NewGuid(),
+                        UserId = studentUserExists.Id,
+                        MatricNumber = "CSC/2020/001",
+                        DateOfBirth = new DateTime(2000, 5, 15, 0, 0, 0, DateTimeKind.Utc),
+                        Gender = "Male",
+                        Address = "123 Student Ave, Akure",
+                        Faculty = "Engineering",
+                        Department = "Computer Science",
+                        YearOfStudy = 3,
+                        BloodGroup = "O+",
+                        Genotype = "AA",
+                        Allergies = "Penicillin",
+                        EmergencyContactName = "Jane Doe",
+                        EmergencyContactPhone = "+2348333333333",
+                        IsVerified = true,
+                        CreatedAt = DateTime.UtcNow
+                    });
+                    await context.SaveChangesAsync(default);
+                }
+            }
         }
     }
 }
