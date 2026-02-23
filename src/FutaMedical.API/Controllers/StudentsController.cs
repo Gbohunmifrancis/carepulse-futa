@@ -95,6 +95,6 @@ public class StudentsController : ControllerBase
         if (!result.Success)
             return BadRequest(ApiResponse<object>.ErrorResponse(result.Message));
         
-        return Ok(ApiResponse<object>.SuccessResponse(null, result.Message));
+        return Ok(ApiResponse<object>.SuccessResponse(new { }, result.Message));
     }
 }
