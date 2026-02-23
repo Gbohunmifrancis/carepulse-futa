@@ -77,7 +77,18 @@ public class AdminController : ControllerBase
     }
 
     /// <summary>
-    /// Create a new doctor account
+    /// Get pending doctor applications for review
+    /// </summary>
+    [HttpGet("doctors/pending")]
+    [ProducesResponseType(typeof(ApiResponse<List<PendingDoctorApplicationDto>>), 200)]
+    public async Task<IActionResult> GetPendingDoctorApplications()
+    {
+        var applications = await _mediator.Send(new GetPendingDoctorApplicationsQuery());
+        return Ok(ApiResponse<List<PendingDoctorApplicationDto>>.SuccessResponse(applications));
+    }
+
+    /// <summary>
+    /// Create a new doctor account and send invitation email
     /// </summary>
     [HttpPost("doctors")]
     [ProducesResponseType(typeof(ApiResponse<CreateDoctorResponse>), 201)]
@@ -93,7 +104,11 @@ public class AdminController : ControllerBase
             nameof(GetAllDoctors), 
             new { id = result.DoctorId }, 
             ApiResponse<CreateDoctorResponse>.SuccessResponse(
-                new CreateDoctorResponse { DoctorId = result.DoctorId!.Value }, 
+                new CreateDoctorResponse 
+                { 
+                    DoctorId = result.DoctorId!.Value,
+                    SetupToken = result.SetupToken!
+                }, 
                 result.Message
             )
         );
@@ -130,9 +145,47 @@ public class AdminController : ControllerBase
         
         return Ok(ApiResponse<object>.SuccessResponse(null, result.Message));
     }
+
+    /// <summary>
+    /// Review and approve/reject a doctor's onboarding application
+    /// </summary>
+    /// <remarks>
+    /// Admin reviews the doctor's submitted onboarding details and documents.
+    /// - If approved: Doctor becomes verified and can accept appointments.
+    /// - If rejected: Doctor receives rejection reason and remains unverified.
+    /// 
+    /// An email notification is sent to the doctor with the outcome.
+    /// </remarks>
+    [HttpPost("doctors/{id}/review")]
+    [ProducesResponseType(typeof(ApiResponse<object>), 200)]
+    [ProducesResponseType(typeof(ApiResponse<object>), 400)]
+    [ProducesResponseType(typeof(ApiResponse<object>), 404)]
+    public async Task<IActionResult> ReviewDoctorApplication(Guid id, [FromBody] ReviewDoctorApplicationRequest request)
+    {
+        var command = new ReviewDoctorApplicationCommand
+        {
+            DoctorId = id,
+            Approve = request.Approve,
+            RejectionReason = request.RejectionReason
+        };
+
+        var result = await _mediator.Send(command);
+        
+        if (!result.Success)
+            return BadRequest(ApiResponse<object>.ErrorResponse(result.Message));
+        
+        return Ok(ApiResponse<object>.SuccessResponse(null, result.Message));
+    }
+}
+
+public class ReviewDoctorApplicationRequest
+{
+    public bool Approve { get; set; }
+    public string? RejectionReason { get; set; }
 }
 
 public class CreateDoctorResponse
 {
     public Guid DoctorId { get; set; }
+    public string SetupToken { get; set; } = string.Empty;
 }

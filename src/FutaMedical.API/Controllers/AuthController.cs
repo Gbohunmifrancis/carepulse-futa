@@ -113,6 +113,29 @@ public class AuthController : ControllerBase
                 new List<string> { ex.Message }));
         }
     }
+
+    /// <summary>
+    /// Set password for a new doctor account using setup token.
+    /// </summary>
+    /// <remarks>
+    /// After admin creates a doctor account, the doctor receives a setup token.  
+    /// Use this endpoint to set the password and basic information to activate the account.
+    /// </remarks>
+    /// <param name="request">Setup token, password, first name, and last name.</param>
+    /// <response code="200">Password set successfully.</response>
+    /// <response code="400">Invalid or expired token.</response>
+    [HttpPost("set-password")]
+    [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status400BadRequest)]
+    public async Task<ActionResult<ApiResponse<object>>> SetPassword([FromBody] SetPasswordCommand request)
+    {
+        var result = await _mediator.Send(request);
+        
+        if (!result.Success)
+            return BadRequest(ApiResponse<object>.ErrorResponse(result.Message));
+        
+        return Ok(ApiResponse<object>.SuccessResponse(null, result.Message));
+    }
 }
 
 /// <summary>Login credentials.</summary>

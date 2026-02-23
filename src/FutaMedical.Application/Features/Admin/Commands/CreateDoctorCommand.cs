@@ -3,22 +3,14 @@ using Microsoft.EntityFrameworkCore;
 using FluentValidation;
 using FutaMedical.Domain.Entities;
 using FutaMedical.Application.Common.Interfaces;
-using BCryptLib = BCrypt.Net.BCrypt;
+using System.Security.Cryptography;
 
 namespace FutaMedical.Application.Features.Admin.Commands;
 
-public record CreateDoctorCommand : IRequest<(bool Success, string Message, Guid? DoctorId)>
+public record CreateDoctorCommand : IRequest<(bool Success, string Message, Guid? DoctorId, string? SetupToken)>
 {
     public string Email { get; init; } = string.Empty;
-    public string Password { get; init; } = string.Empty;
-    public string FirstName { get; init; } = string.Empty;
-    public string LastName { get; init; } = string.Empty;
-    public string PhoneNumber { get; init; } = string.Empty;
-    public Guid DepartmentId { get; init; }
-    public string Specialization { get; init; } = string.Empty;
-    public string LicenseNumber { get; init; } = string.Empty;
-    public string? Qualifications { get; init; }
-    public int YearsOfExperience { get; init; }
+    public string? PhoneNumber { get; init; }
 }
 
 public class CreateDoctorCommandValidator : AbstractValidator<CreateDoctorCommand>
@@ -26,25 +18,17 @@ public class CreateDoctorCommandValidator : AbstractValidator<CreateDoctorComman
     public CreateDoctorCommandValidator()
     {
         RuleFor(x => x.Email)
-            .NotEmpty().EmailAddress();
+            .NotEmpty().WithMessage("Email is required")
+            .EmailAddress().WithMessage("Invalid email format");
         
-        RuleFor(x => x.Password)
-            .NotEmpty().MinimumLength(8)
-            .Matches(@"[A-Z]").WithMessage("Password must contain at least one uppercase letter")
-            .Matches(@"[0-9]").WithMessage("Password must contain at least one number")
-            .Matches(@"[\W_]").WithMessage("Password must contain at least one special character");
-        
-        RuleFor(x => x.FirstName).NotEmpty().MaximumLength(100);
-        RuleFor(x => x.LastName).NotEmpty().MaximumLength(100);
-        RuleFor(x => x.PhoneNumber).NotEmpty();
-        RuleFor(x => x.DepartmentId).NotEmpty();
-        RuleFor(x => x.Specialization).NotEmpty().MaximumLength(200);
-        RuleFor(x => x.LicenseNumber).NotEmpty().MaximumLength(50);
-        RuleFor(x => x.YearsOfExperience).GreaterThanOrEqualTo(0);
+        RuleFor(x => x.PhoneNumber)
+            .Matches(@"^(\+234|0)[789]\d{9}$")
+            .When(x => !string.IsNullOrEmpty(x.PhoneNumber))
+            .WithMessage("Phone number must be a valid Nigerian phone number");
     }
 }
 
-public class CreateDoctorCommandHandler : IRequestHandler<CreateDoctorCommand, (bool Success, string Message, Guid? DoctorId)>
+public class CreateDoctorCommandHandler : IRequestHandler<CreateDoctorCommand, (bool Success, string Message, Guid? DoctorId, string? SetupToken)>
 {
     private readonly IApplicationDbContext _context;
 
@@ -53,35 +37,33 @@ public class CreateDoctorCommandHandler : IRequestHandler<CreateDoctorCommand, (
         _context = context;
     }
 
-    public async Task<(bool Success, string Message, Guid? DoctorId)> Handle(CreateDoctorCommand request, CancellationToken cancellationToken)
+    public async Task<(bool Success, string Message, Guid? DoctorId, string? SetupToken)> Handle(CreateDoctorCommand request, CancellationToken cancellationToken)
     {
         // Check if email already exists
         if (await _context.Users.AnyAsync(u => u.Email == request.Email, cancellationToken))
-            return (false, "Email already exists", null);
-
-        // Check if license number exists
-        if (await _context.Doctors.AnyAsync(d => d.LicenseNumber == request.LicenseNumber, cancellationToken))
-            return (false, "License number already exists", null);
-
-        // Check if department exists
-        if (!await _context.Departments.AnyAsync(d => d.Id == request.DepartmentId && d.IsActive, cancellationToken))
-            return (false, "Department not found or inactive", null);
+            return (false, "Email already exists", null, null);
 
         // Get doctor role
         var doctorRole = await _context.Roles.FirstOrDefaultAsync(r => r.Name == "Doctor", cancellationToken);
         if (doctorRole == null)
-            return (false, "Doctor role not found", null);
+            return (false, "Doctor role not found", null, null);
 
-        // Create user
+        // Generate password setup token
+        var setupToken = GenerateSecureToken();
+        var tokenExpiry = DateTime.UtcNow.AddDays(7); // Token valid for 7 days
+
+        // Create user with temporary data
         var user = new User
         {
             Id = Guid.NewGuid(),
             Email = request.Email,
-            PasswordHash = BCryptLib.HashPassword(request.Password),
-            FirstName = request.FirstName,
-            LastName = request.LastName,
+            PasswordHash = string.Empty, // No password yet
+            FirstName = string.Empty, // Will be filled during onboarding
+            LastName = string.Empty, // Will be filled during onboarding
             PhoneNumber = request.PhoneNumber,
-            IsActive = true,
+            IsActive = false, // Inactive until password is set
+            PasswordSetupToken = setupToken,
+            PasswordSetupTokenExpiry = tokenExpiry,
             CreatedAt = DateTime.UtcNow
         };
 
@@ -97,23 +79,33 @@ public class CreateDoctorCommandHandler : IRequestHandler<CreateDoctorCommand, (
             AssignedAt = DateTime.UtcNow
         });
 
-        // Create doctor
+        // Create doctor profile with minimal data
         var doctor = new Doctor
         {
             Id = Guid.NewGuid(),
             UserId = user.Id,
-            DepartmentId = request.DepartmentId,
-            Specialization = request.Specialization,
-            LicenseNumber = request.LicenseNumber,
-            Qualifications = request.Qualifications,
-            YearsOfExperience = request.YearsOfExperience,
-            IsVerified = true,
+            DepartmentId = null, // Will be set during onboarding
+            Specialization = null,
+            LicenseNumber = null,
+            IsVerified = false,
+            ApplicationStatus = null, // No application submitted yet
             CreatedAt = DateTime.UtcNow
         };
 
         _context.Doctors.Add(doctor);
         await _context.SaveChangesAsync(cancellationToken);
 
-        return (true, "Doctor created successfully", doctor.Id);
+        // TODO: Send email with setup link containing the token
+        // Example: https://yourapp.com/setup-password?token={setupToken}
+
+        return (true, "Doctor invitation sent successfully", doctor.Id, setupToken);
+    }
+
+    private static string GenerateSecureToken()
+    {
+        var randomBytes = new byte[32];
+        using var rng = RandomNumberGenerator.Create();
+        rng.GetBytes(randomBytes);
+        return Convert.ToBase64String(randomBytes).Replace("+", "-").Replace("/", "_").TrimEnd('=');
     }
 }

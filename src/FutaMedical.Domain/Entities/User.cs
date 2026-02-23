@@ -15,6 +15,8 @@ public class User : BaseEntity
     public bool IsDeleted { get; set; } = false;
     public string? RefreshToken { get; set; }
     public DateTime? RefreshTokenExpiryTime { get; set; }
+    public string? PasswordSetupToken { get; set; }
+    public DateTime? PasswordSetupTokenExpiry { get; set; }
     
     public virtual ICollection<UserRole> UserRoles { get; set; } = new List<UserRole>();
     public virtual Student? Student { get; set; }
