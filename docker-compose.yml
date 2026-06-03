@@ -1,0 +1,38 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres:15-alpine
+    container_name: futa_medical_db
+    restart: always
+    environment:
+      - POSTGRES_DB=FutaMedicalDb
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+  api:
+    image: futamedical-api:latest
+    container_name: futa_medical_api
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "5001:8080"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ConnectionStrings__DefaultConnection=Host=db;Database=FutaMedicalDb;Username=postgres;Password=postgres
+      - Jwt__Key=SuperSecretSecureJWTKeyFUTA2026!ForDevelopment
+      - Jwt__Issuer=FutaMedical
+      - Jwt__Audience=FutaMedicalClient
+      - Jwt__DurationInMinutes=1440
+      - Resend__ApiKey=re_YDG2Q8iZ_JxuBFRWqhWqh12fQyqB8PJNk
+      - Resend__FromEmail=onboarding@resend.dev
+    depends_on:
+      - db
+
+volumes:
+  pgdata:
