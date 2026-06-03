@@ -38,12 +38,12 @@ public class CreateDoctorCommandValidator : AbstractValidator<CreateDoctorComman
 public class CreateDoctorCommandHandler : IRequestHandler<CreateDoctorCommand, ApiResponse<CreateDoctorResponseDto>>
 {
     private readonly IApplicationDbContext _context;
-    private readonly IEmailService _emailService;
+    private readonly IMediator _mediator;
 
-    public CreateDoctorCommandHandler(IApplicationDbContext context, IEmailService emailService)
+    public CreateDoctorCommandHandler(IApplicationDbContext context, IMediator mediator)
     {
         _context = context;
-        _emailService = emailService;
+        _mediator = mediator;
     }
 
     public async Task<ApiResponse<CreateDoctorResponseDto>> Handle(CreateDoctorCommand request, CancellationToken cancellationToken)
@@ -104,32 +104,8 @@ public class CreateDoctorCommandHandler : IRequestHandler<CreateDoctorCommand, A
         _context.Doctors.Add(doctor);
         await _context.SaveChangesAsync(cancellationToken);
 
-        // Send email with setup link containing the token
-        var setupLink = $"https://futa-medical.edu.ng/setup-password?token={setupToken}";
-        var emailSubject = "FUTA Medical System - Doctor Invitation";
-        var emailBody = $@"
-            <div style='font-family: Arial, sans-serif; padding: 20px; color: #333;'>
-                <h2>Welcome to FUTA Medical System</h2>
-                <p>You have been registered as a medical practitioner on our platform.</p>
-                <p>Please click the link below to set your password and complete your onboarding registration:</p>
-                <p style='margin: 20px 0;'>
-                    <a href='{setupLink}' style='background-color: #007bff; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; font-weight: bold;'>
-                        Set up your account password
-                    </a>
-                </p>
-                <p>This invitation link is valid for 7 days.</p>
-                <hr style='border: none; border-top: 1px solid #eee; margin-top: 30px;' />
-                <p style='font-size: 12px; color: #777;'>Federal University of Technology, Akure Medical Center</p>
-            </div>";
-
-        try
-        {
-            await _emailService.SendEmailAsync(request.Email, emailSubject, emailBody);
-        }
-        catch
-        {
-            // Allow registration to proceed even if email fails, log or return token to client
-        }
+        // Publish UserInvitedEvent asynchronously via MediatR
+        await _mediator.Publish(new FutaMedical.Application.Common.Events.UserInvitedEvent(request.Email, setupToken, "Doctor"), cancellationToken);
 
         var response = new CreateDoctorResponseDto
         {

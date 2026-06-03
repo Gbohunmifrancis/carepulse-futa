@@ -39,6 +39,9 @@ public class ApplicationDbContext : DbContext, IApplicationDbContext
     public DbSet<AuditLog> AuditLogs => Set<AuditLog>();
     public DbSet<SystemSetting> SystemSettings => Set<SystemSetting>();
     public DbSet<Admin> Admins => Set<Admin>();
+    public DbSet<UserSession> UserSessions => Set<UserSession>();
+    public DbSet<EmailTemplate> EmailTemplates => Set<EmailTemplate>();
+    public DbSet<EmailQueue> EmailQueues => Set<EmailQueue>();
 
     protected override void OnModelCreating(ModelBuilder builder)
     {

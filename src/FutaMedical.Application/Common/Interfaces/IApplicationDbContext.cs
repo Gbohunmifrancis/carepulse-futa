@@ -24,6 +24,9 @@ public interface IApplicationDbContext
     DbSet<AuditLog> AuditLogs { get; }
     DbSet<SystemSetting> SystemSettings { get; }
     DbSet<Admin> Admins { get; }
+    DbSet<UserSession> UserSessions { get; }
+    DbSet<EmailTemplate> EmailTemplates { get; }
+    DbSet<EmailQueue> EmailQueues { get; }
 
     Task<int> SaveChangesAsync(CancellationToken cancellationToken);
 }

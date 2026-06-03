@@ -98,6 +98,69 @@ public class AuthController : ApiControllerBase
         var result = await _mediator.Send(request);
         return ReturnResult(result);
     }
+
+    /// <summary>
+    /// Get all active sessions for the currently logged-in user.
+    /// </summary>
+    /// <response code="200">Returns list of active sessions.</response>
+    /// <response code="401">User not authenticated.</response>
+    [Microsoft.AspNetCore.Authorization.Authorize]
+    [HttpGet("sessions")]
+    [ProducesResponseType(typeof(ApiResponse<List<FutaMedical.Application.Features.Auth.Queries.UserSessionDto>>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status401Unauthorized)]
+    public async Task<IActionResult> GetActiveSessions()
+    {
+        var result = await _mediator.Send(new FutaMedical.Application.Features.Auth.Queries.GetActiveSessionsQuery());
+        return ReturnResult(result);
+    }
+
+    /// <summary>
+    /// Logout of the current session instantly.
+    /// </summary>
+    /// <response code="200">Logged out successfully.</response>
+    /// <response code="401">User not authenticated.</response>
+    [Microsoft.AspNetCore.Authorization.Authorize]
+    [HttpPost("logout")]
+    [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status401Unauthorized)]
+    public async Task<IActionResult> Logout()
+    {
+        var result = await _mediator.Send(new LogoutCommand());
+        return ReturnResult(result);
+    }
+
+    /// <summary>
+    /// Logout of all active sessions for this account.
+    /// </summary>
+    /// <response code="200">Logged out of all sessions successfully.</response>
+    /// <response code="401">User not authenticated.</response>
+    [Microsoft.AspNetCore.Authorization.Authorize]
+    [HttpPost("logout/all")]
+    [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status401Unauthorized)]
+    public async Task<IActionResult> LogoutAll()
+    {
+        var result = await _mediator.Send(new LogoutAllCommand());
+        return ReturnResult(result);
+    }
+
+    /// <summary>
+    /// Logout of a specific session by token JTI.
+    /// </summary>
+    /// <param name="jti">The unique identifier (JTI) of the target session.</param>
+    /// <response code="200">Session revoked successfully.</response>
+    /// <response code="400">Session not found or already revoked.</response>
+    /// <response code="401">User not authenticated.</response>
+    [Microsoft.AspNetCore.Authorization.Authorize]
+    [HttpPost("logout/{jti}")]
+    [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status401Unauthorized)]
+    public async Task<IActionResult> LogoutSession(string jti)
+    {
+        var result = await _mediator.Send(new LogoutSessionCommand(jti));
+        return ReturnResult(result);
+    }
 }
 
 /// <summary>Login credentials.</summary>

@@ -43,8 +43,8 @@ public class DoctorConfiguration : IEntityTypeConfiguration<Doctor>
     {
         builder.HasKey(d => d.Id);
         builder.HasIndex(d => d.LicenseNumber).IsUnique();
-        builder.Property(d => d.Specialization).IsRequired().HasMaxLength(100);
-        builder.Property(d => d.LicenseNumber).IsRequired().HasMaxLength(50);
+        builder.Property(d => d.Specialization).HasMaxLength(100);
+        builder.Property(d => d.LicenseNumber).HasMaxLength(50);
         builder.Property(d => d.Rating).HasPrecision(2, 1);
         
         builder.HasOne(d => d.User)
@@ -88,5 +88,48 @@ public class DoctorAvailabilityConfiguration : IEntityTypeConfiguration<DoctorAv
                .WithMany(d => d.Availabilities)
                .HasForeignKey(da => da.DoctorId)
                .OnDelete(DeleteBehavior.Cascade);
+    }
+}
+
+public class UserSessionConfiguration : IEntityTypeConfiguration<UserSession>
+{
+    public void Configure(EntityTypeBuilder<UserSession> builder)
+    {
+        builder.HasKey(us => us.Id);
+        builder.HasIndex(us => us.TokenJti).IsUnique();
+        builder.Property(us => us.TokenJti).IsRequired().HasMaxLength(100);
+        builder.Property(us => us.UserAgent).HasMaxLength(500);
+        builder.Property(us => us.IpAddress).HasMaxLength(50);
+        
+        builder.HasOne(us => us.User)
+               .WithMany()
+               .HasForeignKey(us => us.UserId)
+               .OnDelete(DeleteBehavior.Cascade);
+    }
+}
+
+public class EmailTemplateConfiguration : IEntityTypeConfiguration<EmailTemplate>
+{
+    public void Configure(EntityTypeBuilder<EmailTemplate> builder)
+    {
+        builder.HasKey(et => et.Id);
+        builder.HasIndex(et => et.Code).IsUnique();
+        builder.Property(et => et.Code).IsRequired().HasMaxLength(100);
+        builder.Property(et => et.Subject).IsRequired().HasMaxLength(200);
+        builder.Property(et => et.HtmlBody).IsRequired();
+    }
+}
+
+public class EmailQueueConfiguration : IEntityTypeConfiguration<EmailQueue>
+{
+    public void Configure(EntityTypeBuilder<EmailQueue> builder)
+    {
+        builder.HasKey(eq => eq.Id);
+        builder.Property(eq => eq.To).IsRequired().HasMaxLength(255);
+        builder.Property(eq => eq.Subject).IsRequired().HasMaxLength(200);
+        builder.Property(eq => eq.Body).IsRequired();
+        builder.Property(eq => eq.TemplateCode).HasMaxLength(100);
+        builder.Property(eq => eq.Status).IsRequired().HasMaxLength(50);
+        builder.Property(eq => eq.ErrorMessage).HasMaxLength(2000);
     }
 }

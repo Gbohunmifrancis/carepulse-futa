@@ -108,6 +108,23 @@ builder.Services.AddAuthentication(options =>
         RoleClaimType = "http://schemas.microsoft.com/ws/2008/06/identity/claims/role",
         NameClaimType = "sub"
     };
+
+    options.Events = new JwtBearerEvents
+    {
+        OnTokenValidated = async context =>
+        {
+            var dbContext = context.HttpContext.RequestServices.GetRequiredService<FutaMedical.Application.Common.Interfaces.IApplicationDbContext>();
+            var jti = context.Principal?.FindFirst(System.IdentityModel.Tokens.Jwt.JwtRegisteredClaimNames.Jti)?.Value;
+            if (!string.IsNullOrEmpty(jti))
+            {
+                var session = await dbContext.UserSessions.FirstOrDefaultAsync(s => s.TokenJti == jti);
+                if (session == null || session.IsRevoked)
+                {
+                    context.Fail("Token has been revoked or logged out.");
+                }
+            }
+        }
+    };
 });
 
 builder.Services.AddAuthorization(options =>

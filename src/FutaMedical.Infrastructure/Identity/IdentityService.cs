@@ -16,11 +16,16 @@ public class IdentityService : IIdentityService
 {
     private readonly IApplicationDbContext _context;
     private readonly IJwtService _jwtService;
+    private readonly Microsoft.AspNetCore.Http.IHttpContextAccessor _httpContextAccessor;
 
-    public IdentityService(IApplicationDbContext context, IJwtService jwtService)
+    public IdentityService(
+        IApplicationDbContext context, 
+        IJwtService jwtService,
+        Microsoft.AspNetCore.Http.IHttpContextAccessor httpContextAccessor)
     {
         _context = context;
         _jwtService = jwtService;
+        _httpContextAccessor = httpContextAccessor;
     }
 
     public async Task<ApiResponse<AuthResponse>> LoginAsync(string email, string password, CancellationToken cancellationToken = default)
@@ -43,6 +48,28 @@ public class IdentityService : IIdentityService
         var roles = user.UserRoles.Select(ur => ur.Role.Name).ToList();
         var token = _jwtService.GenerateToken(user.Id, user.Email, user.FirstName, user.LastName, roles);
         var refreshToken = _jwtService.GenerateRefreshToken();
+
+        // Track and record UserSession
+        var tokenHandler = new System.IdentityModel.Tokens.Jwt.JwtSecurityTokenHandler();
+        var jwtToken = tokenHandler.ReadJwtToken(token);
+        var jti = jwtToken.Id;
+
+        var httpContext = _httpContextAccessor.HttpContext;
+        var ipAddress = httpContext?.Connection?.RemoteIpAddress?.ToString() ?? "Unknown";
+        var userAgent = httpContext?.Request?.Headers["User-Agent"].ToString() ?? "Unknown";
+
+        var session = new UserSession
+        {
+            Id = Guid.NewGuid(),
+            UserId = user.Id,
+            TokenJti = jti,
+            IpAddress = ipAddress,
+            UserAgent = userAgent,
+            ExpiresAt = jwtToken.ValidTo,
+            IsRevoked = false
+        };
+
+        _context.UserSessions.Add(session);
 
         user.RefreshToken = refreshToken;
         user.RefreshTokenExpiryTime = DateTime.UtcNow.AddDays(7);
@@ -120,6 +147,28 @@ public class IdentityService : IIdentityService
                 var token = _jwtService.GenerateToken(user.Id, user.Email, user.FirstName, user.LastName, roles);
                 var refreshToken = _jwtService.GenerateRefreshToken();
 
+                // Track and record UserSession
+                var tokenHandler = new System.IdentityModel.Tokens.Jwt.JwtSecurityTokenHandler();
+                var jwtToken = tokenHandler.ReadJwtToken(token);
+                var jti = jwtToken.Id;
+
+                var httpContext = _httpContextAccessor.HttpContext;
+                var ipAddress = httpContext?.Connection?.RemoteIpAddress?.ToString() ?? "Unknown";
+                var userAgent = httpContext?.Request?.Headers["User-Agent"].ToString() ?? "Unknown";
+
+                var session = new UserSession
+                {
+                    Id = Guid.NewGuid(),
+                    UserId = user.Id,
+                    TokenJti = jti,
+                    IpAddress = ipAddress,
+                    UserAgent = userAgent,
+                    ExpiresAt = jwtToken.ValidTo,
+                    IsRevoked = false
+                };
+
+                _context.UserSessions.Add(session);
+
                 user.RefreshToken = refreshToken;
                 user.RefreshTokenExpiryTime = DateTime.UtcNow.AddDays(7);
 
@@ -175,6 +224,28 @@ public class IdentityService : IIdentityService
         var roles = user.UserRoles.Select(ur => ur.Role.Name).ToList();
         var newToken = _jwtService.GenerateToken(user.Id, user.Email, user.FirstName, user.LastName, roles);
         var newRefreshToken = _jwtService.GenerateRefreshToken();
+
+        // Track and record UserSession
+        var tokenHandler = new System.IdentityModel.Tokens.Jwt.JwtSecurityTokenHandler();
+        var jwtToken = tokenHandler.ReadJwtToken(newToken);
+        var jti = jwtToken.Id;
+
+        var httpContext = _httpContextAccessor.HttpContext;
+        var ipAddress = httpContext?.Connection?.RemoteIpAddress?.ToString() ?? "Unknown";
+        var userAgent = httpContext?.Request?.Headers["User-Agent"].ToString() ?? "Unknown";
+
+        var session = new UserSession
+        {
+            Id = Guid.NewGuid(),
+            UserId = user.Id,
+            TokenJti = jti,
+            IpAddress = ipAddress,
+            UserAgent = userAgent,
+            ExpiresAt = jwtToken.ValidTo,
+            IsRevoked = false
+        };
+
+        _context.UserSessions.Add(session);
 
         user.RefreshToken = newRefreshToken;
         await _context.SaveChangesAsync(cancellationToken);

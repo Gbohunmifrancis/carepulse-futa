@@ -258,5 +258,74 @@ public class ApplicationDbContextSeed
                 }
             }
         }
+
+        await SeedEmailTemplatesAsync(context);
+    }
+
+    private static async Task SeedEmailTemplatesAsync(ApplicationDbContext context)
+    {
+        if (!await context.EmailTemplates.AnyAsync(t => t.Code == "DOCTOR_INVITATION"))
+        {
+            context.EmailTemplates.Add(new EmailTemplate
+            {
+                Id = Guid.NewGuid(),
+                Code = "DOCTOR_INVITATION",
+                Subject = "FUTA Medical System - Doctor Invitation",
+                HtmlBody = @"<div style=""font-family: 'Outfit', 'Inter', -apple-system, sans-serif; background-color: #f8fafc; padding: 40px 20px; color: #1e293b;"">
+    <div style=""max-width: 580px; margin: 0 auto; background: #ffffff; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -2px rgba(0, 0, 0, 0.05); border: 1px solid #e2e8f0;"">
+        <div style=""background: linear-gradient(135deg, #4f46e5 0%, #06b6d4 100%); padding: 32px; text-align: center;"">
+            <h1 style=""color: #ffffff; margin: 0; font-size: 24px; font-weight: 700; letter-spacing: -0.025em;"">FUTA Medical Booking System</h1>
+        </div>
+        <div style=""padding: 40px 32px;"">
+            <h2 style=""margin-top: 0; font-size: 20px; font-weight: 600; color: #0f172a; line-height: 1.3;"">Doctor Account Setup Invitation</h2>
+            <p style=""font-size: 15px; line-height: 1.6; color: #475569; margin: 16px 0 24px 0;"">Hello,</p>
+            <p style=""font-size: 15px; line-height: 1.6; color: #475569; margin: 0 0 24px 0;"">You have been registered as a medical practitioner on the <strong>FUTA Medical Booking System</strong> platform. To activate your account and complete your onboarding, please click the secure link below to set up your password:</p>
+            
+            <div style=""text-align: center; margin: 32px 0;"">
+                <a href=""{{SetupLink}}"" style=""display: inline-block; background-color: #4f46e5; color: #ffffff; padding: 14px 28px; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 15px; box-shadow: 0 4px 10px rgba(79, 70, 229, 0.2); transition: all 0.2s ease-in-out;"">Set Up Your Password</a>
+            </div>
+
+            <p style=""font-size: 14px; line-height: 1.5; color: #64748b; margin: 24px 0 0 0; padding: 16px; background-color: #f1f5f9; border-radius: 8px; border-left: 4px solid #06b6d4;""><strong>Note:</strong> This setup link is secure and will expire in {{ExpiresIn}}.</p>
+            
+            <hr style=""border: none; border-top: 1px solid #e2e8f0; margin: 32px 0;"" />
+            <p style=""font-size: 13px; line-height: 1.5; color: #94a3b8; margin: 0; text-align: center;"">Federal University of Technology, Akure Medical Center</p>
+        </div>
+    </div>
+</div>"
+            });
+        }
+
+        if (!await context.EmailTemplates.AnyAsync(t => t.Code == "PASSWORD_RESET"))
+        {
+            context.EmailTemplates.Add(new EmailTemplate
+            {
+                Id = Guid.NewGuid(),
+                Code = "PASSWORD_RESET",
+                Subject = "FUTA Medical System - Password Reset Request",
+                HtmlBody = @"<div style=""font-family: 'Outfit', 'Inter', -apple-system, sans-serif; background-color: #f8fafc; padding: 40px 20px; color: #1e293b;"">
+    <div style=""max-width: 580px; margin: 0 auto; background: #ffffff; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -2px rgba(0, 0, 0, 0.05); border: 1px solid #e2e8f0;"">
+        <div style=""background: linear-gradient(135deg, #4f46e5 0%, #06b6d4 100%); padding: 32px; text-align: center;"">
+            <h1 style=""color: #ffffff; margin: 0; font-size: 24px; font-weight: 700; letter-spacing: -0.025em;"">FUTA Medical Booking System</h1>
+        </div>
+        <div style=""padding: 40px 32px;"">
+            <h2 style=""margin-top: 0; font-size: 20px; font-weight: 600; color: #0f172a; line-height: 1.3;"">Password Reset Request</h2>
+            <p style=""font-size: 15px; line-height: 1.6; color: #475569; margin: 16px 0 24px 0;"">Hello,</p>
+            <p style=""font-size: 15px; line-height: 1.6; color: #475569; margin: 0 0 24px 0;"">We received a request to reset the password for your FUTA Medical System account. Click the button below to choose a new password:</p>
+            
+            <div style=""text-align: center; margin: 32px 0;"">
+                <a href=""{{ResetLink}}"" style=""display: inline-block; background-color: #4f46e5; color: #ffffff; padding: 14px 28px; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 15px; box-shadow: 0 4px 10px rgba(79, 70, 229, 0.2); transition: all 0.2s ease-in-out;"">Reset Your Password</a>
+            </div>
+
+            <p style=""font-size: 14px; line-height: 1.5; color: #64748b; margin: 24px 0 0 0; padding: 16px; background-color: #f1f5f9; border-radius: 8px; border-left: 4px solid #f43f5e;"">If you did not make this request, you can safely ignore this email; your password will remain unchanged.</p>
+            
+            <hr style=""border: none; border-top: 1px solid #e2e8f0; margin: 32px 0;"" />
+            <p style=""font-size: 13px; line-height: 1.5; color: #94a3b8; margin: 0; text-align: center;"">Federal University of Technology, Akure Medical Center</p>
+        </div>
+    </div>
+</div>"
+            });
+        }
+
+        await context.SaveChangesAsync(default);
     }
 }
