@@ -1,0 +1,9 @@
+**/.git
+**/.vscode
+**/bin
+**/obj
+**/out
+**/appsettings.Development.json
+**/*.user
+Dockerfile
+docker-compose.yml
