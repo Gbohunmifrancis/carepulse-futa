@@ -18,11 +18,13 @@ public class AuthController : ApiControllerBase
 {
     private readonly IMediator _mediator;
     private readonly IApplicationDbContext _context;
+    private readonly IEmailTemplateService _templateService;
 
-    public AuthController(IMediator mediator, IApplicationDbContext context)
+    public AuthController(IMediator mediator, IApplicationDbContext context, IEmailTemplateService templateService)
     {
         _mediator = mediator;
         _context = context;
+        _templateService = templateService;
     }
 
     /// <summary>
@@ -183,11 +185,35 @@ public class AuthController : ApiControllerBase
             user.PasswordSetupTokenExpiry = DateTime.UtcNow.AddHours(1);
             user.UpdatedAt = DateTime.UtcNow;
 
+            // Build branded reset link and render HTML template
+            var resetLink = $"https://campushealth.vercel.app/reset-password?token={user.PasswordSetupToken}";
+            var templateVariables = new System.Collections.Generic.Dictionary<string, string>
+            {
+                { "ResetLink", resetLink }
+            };
+
+            string emailBody;
+            string emailSubject;
+            try
+            {
+                emailBody = await _templateService.RenderAsync("PASSWORD_RESET", templateVariables);
+                var template = await _context.EmailTemplates
+                    .FirstOrDefaultAsync(t => t.Code == "PASSWORD_RESET");
+                emailSubject = template?.Subject ?? "FUTA Medical System - Password Reset Request";
+            }
+            catch
+            {
+                // Fallback if template not found
+                emailBody = $"<p>Click the link below to reset your password:</p><a href=\"{resetLink}\">Reset Password</a><p>This link expires in 1 hour.</p>";
+                emailSubject = "FUTA Medical System - Password Reset Request";
+            }
+
             _context.EmailQueues.Add(new EmailQueue
             {
                 To = user.Email,
-                Subject = "Password Reset Request",
-                Body = $"Use this token to reset your password: {user.PasswordSetupToken}",
+                Subject = emailSubject,
+                Body = emailBody,
+                TemplateCode = "PASSWORD_RESET",
                 Status = "Pending",
                 Attempts = 0
             });

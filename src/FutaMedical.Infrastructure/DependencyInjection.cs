@@ -15,6 +15,7 @@ public static class DependencyInjection
     {
         var connectionString = configuration.GetConnectionString("DefaultConnection");
 
+        // Heroku provides DATABASE_URL; parse it into a Npgsql connection string
         var databaseUrl = Environment.GetEnvironmentVariable("DATABASE_URL");
         if (!string.IsNullOrEmpty(databaseUrl))
         {
@@ -28,22 +29,23 @@ public static class DependencyInjection
 
         services.AddDbContext<ApplicationDbContext>(options =>
             options.UseNpgsql(connectionString,
-                builder => 
+                builder =>
                 {
                     builder.MigrationsAssembly(typeof(ApplicationDbContext).Assembly.FullName);
                     builder.EnableRetryOnFailure(
                         maxRetryCount: 5,
                         maxRetryDelay: TimeSpan.FromSeconds(30),
                         errorCodesToAdd: null);
-                    builder.CommandTimeout(120); // 2 minutes
+                    builder.CommandTimeout(120);
                 })
-                .EnableSensitiveDataLogging(bool.TryParse(configuration["EnableSensitiveDataLogging"], out var result) && result));
+                .EnableSensitiveDataLogging(
+                    bool.TryParse(configuration["EnableSensitiveDataLogging"], out var result) && result));
 
         services.AddScoped<IApplicationDbContext>(provider => provider.GetRequiredService<ApplicationDbContext>());
 
         services.AddScoped<IJwtService, JwtService>();
         services.AddScoped<IIdentityService, IdentityService>();
-        services.AddScoped<IEmailService, ResendEmailService>();
+        services.AddScoped<IEmailService, SmtpEmailService>();   // ← Google SMTP
         services.AddScoped<IEmailTemplateService, EmailTemplateService>();
         services.AddHostedService<EmailQueueProcessor>();
 
